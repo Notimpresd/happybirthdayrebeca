@@ -3,10 +3,9 @@ $(window).load(function(){
 	$('.container').fadeIn('fast');
 });
 $('document').ready(function(){
-                var vw;
-                var timelineStarted = false;
-                $(window).resize(function(){
-                         vw = $(window).width()/2;
+		var vw;
+		$(window).resize(function(){
+			 vw = $(window).width()/2;
 			$('#b1,#b2,#b3,#b4,#b5,#b6,#b7').stop();
 			$('#b11').animate({top:240, left: vw-350},500);
 			$('#b22').animate({top:240, left: vw-250},500);
@@ -140,8 +139,8 @@ $('document').ready(function(){
 	});
 
 		
-        $('#wish_message').click(function(){
-                 vw = $(window).width()/2;
+	$('#wish_message').click(function(){
+		 vw = $(window).width()/2;
 
 		$('#b1,#b2,#b3,#b4,#b5,#b6,#b7').stop();
 		$('#b1').attr('id','b11');
@@ -163,76 +162,37 @@ $('document').ready(function(){
 		$(this).fadeOut('slow').delay(3000).promise().done(function(){
 			$('#story').fadeIn('slow');
 		});
-        });
+	});
+	
+	$('#story').click(function(){
+		$(this).fadeOut('slow');
+		$('.cake').fadeOut('fast').promise().done(function(){
+			$('.message').fadeIn('slow');
+		});
+		
+		var i;
 
-        function startPhotoTimeline() {
-                if (timelineStarted) {
-                        return;
-                }
-                timelineStarted = true;
-                var $timeline = $('#photo_timeline');
-                if ($timeline.length === 0) {
-                        return;
-                }
-                var $slides = $timeline.find('.timeline-slide');
-                $slides.stop(true, true).hide();
-                $timeline.fadeIn('slow', function () {
-                        showSlide(0);
-                });
+		function msgLoop (i) {
+			$("p:nth-child("+i+")").fadeOut('slow').delay(800).promise().done(function(){
+			i=i+1;
+			$("p:nth-child("+i+")").fadeIn('slow').delay(1000);
+			if(i==50){
+				$("p:nth-child(49)").fadeOut('slow').promise().done(function () {
+					$('.cake').fadeIn('fast');
+				});
+				
+			}
+			else{
+				msgLoop(i);
+			}			
 
-                function showSlide(index) {
-                        if (index >= $slides.length) {
-                                return;
-                        }
-                        var $currentSlide = $($slides[index]);
-                        var isLastSlide = index === $slides.length - 1;
-
-                        $currentSlide.fadeIn(800, function () {
-                                setTimeout(function () {
-                                        if (isLastSlide) {
-                                                return;
-                                        }
-                                        $currentSlide.fadeOut(800, function () {
-                                                showSlide(index + 1);
-                                        });
-                                }, 2500);
-                        });
-                }
-        }
-
-        $('#story').click(function(){
-                $(this).fadeOut('slow');
-                $('.cake').fadeOut('fast').promise().done(function(){
-                        var $message = $('.message');
-                        var $paragraphs = $message.find('p');
-                        $paragraphs.stop(true, true).hide();
-                        $message.fadeIn('slow', function () {
-                                animateParagraph(0);
-                        });
-
-                        function animateParagraph(index) {
-                                if (index >= $paragraphs.length) {
-                                        startPhotoTimeline();
-                                        return;
-                                }
-                                var $currentParagraph = $($paragraphs[index]);
-                                var isLastParagraph = index === $paragraphs.length - 1;
-                                $currentParagraph.fadeIn('slow', function () {
-                                        var displayDuration = isLastParagraph ? 4000 : 2000;
-                                        setTimeout(function () {
-                                                if (isLastParagraph) {
-                                                        startPhotoTimeline();
-                                                } else {
-                                                        $currentParagraph.fadeOut('slow', function () {
-                                                                animateParagraph(index + 1);
-                                                        });
-                                                }
-                                        }, displayDuration);
-                                });
-                        }
-                });
-
-        });
+		});
+			// body...
+		}
+		
+		msgLoop(0);
+		
+	});
 });
 
 
