@@ -4,6 +4,35 @@ $(window).load(function(){
 });
 $('document').ready(function(){
 		var vw;
+		var galleryImages = ['11.jpg','12.jpg','13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg'];
+
+		function initSideGallery(selector, images, startIndex) {
+				var $container = $(selector);
+				if (!$container.length || !images.length) {
+						return;
+				}
+
+				var currentIndex = startIndex % images.length;
+				var $image = $('<img/>', {
+						'class': 'side-gallery__image',
+						src: images[currentIndex],
+						alt: 'Galerie foto'
+				});
+
+				$container.append($image);
+
+				setInterval(function(){
+						var nextIndex = (currentIndex + 1) % images.length;
+						$image.fadeOut(1000, function(){
+								currentIndex = nextIndex;
+								$image.attr('src', images[currentIndex]).fadeIn(1000);
+						});
+				}, 5000);
+		}
+
+		initSideGallery('#left-gallery', galleryImages, 0);
+		initSideGallery('#right-gallery', galleryImages, Math.floor(galleryImages.length / 2));
+
 		$(window).resize(function(){
 			 vw = $(window).width()/2;
 			$('#b1,#b2,#b3,#b4,#b5,#b6,#b7').stop();
