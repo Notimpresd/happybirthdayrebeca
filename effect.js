@@ -2,15 +2,30 @@
 var currentMsgIndex = 1;
 var totalMessages = $(".message p").length;
 var galleryActivators = [];
+var galleryRotationDelay = 10000;
+var galleryRotationTimer = null;
+var galleryDisplays = [];
+var galleryItems = [
+  { src: '11.jpg', caption: 'Octombrie 2024' },
+  { src: '12.jpg', caption: 'Noiembrie 2024' },
+  { src: '13.jpg', caption: 'Decembrie 2024' },
+  { src: '14.jpg', caption: 'Februarie 2025' },
+  { src: '15.jpg', caption: 'Martie 2025' },
+  { src: '16.jpg', caption: 'Aprilie 2025' },
+  { src: '17.jpg', caption: 'Mai 2025' },
+  { src: '18.jpg', caption: 'Iunie 2025' },
+  { src: '19.jpg', caption: 'August 2025' },
+  { src: '20.jpg', caption: 'Septembrie 2025' }
+];
 
 // Funcția existentă de loop
 function msgLoop(i) {
-  $("p:nth-child(" + i + ")").fadeOut('slow').delay(800).promise().done(function () {
+  $(".message p:nth-child(" + i + ")").fadeOut('slow').delay(800).promise().done(function () {
     i = i + 1;
-    $("p:nth-child(" + i + ")").fadeIn('slow').delay(1000);
+    $(".message p:nth-child(" + i + ")").fadeIn('slow').delay(1000);
     currentMsgIndex = i;
     if (i == totalMessages) {
-      $("p:nth-child(" + (totalMessages - 1) + ")").fadeOut('slow').promise().done(function () {
+      $(".message p:nth-child(" + (totalMessages - 1) + ")").fadeOut('slow').promise().done(function () {
         $('.cake').fadeIn('fast');
       });
     } else {
@@ -25,49 +40,74 @@ $(window).load(function(){
 });
 $('document').ready(function(){
 		var vw;
-		var galleryImages = ['11.jpg','12.jpg','13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg'];
+                function normalizeGalleryIndex(index) {
+                                var length = galleryItems.length;
+                                if (!length) {
+                                                return 0;
+                                }
 
-                function initSideGallery(selector, images, startIndex) {
-                                var $container = $(selector);
-                                if (!$container.length || !images.length) {
+                                return ((index % length) + length) % length;
+                }
+
+                function ensureGalleryRotation() {
+                                if (galleryRotationTimer !== null || !galleryDisplays.length || !galleryItems.length) {
                                                 return;
                                 }
 
-                                var currentIndex = startIndex % images.length;
-                                var $image = $('<img/>', {
-                                                'class': 'side-gallery__image',
-                                                src: images[currentIndex],
-                                                alt: 'Galerie foto'
-                                }).hide();
+                                galleryRotationTimer = setInterval(function(){
+                                                galleryDisplays.forEach(function(display){
+                                                                display.currentIndex = normalizeGalleryIndex(display.currentIndex + 1);
+                                                                var nextItem = galleryItems[display.currentIndex];
 
-                                $container.append($image);
-
-                                var intervalId = null;
-
-                                function startRotation() {
-                                                if (intervalId !== null) {
-                                                                return;
-                                                }
-
-                                                intervalId = setInterval(function(){
-                                                                var nextIndex = (currentIndex + 1) % images.length;
-                                                                $image.fadeOut(1000, function(){
-                                                                                currentIndex = nextIndex;
-                                                                                $image.attr('src', images[currentIndex]).fadeIn(1000);
+                                                                display.$image.stop(true, true).fadeOut(500, function(){
+                                                                                $(this).attr('src', nextItem.src).fadeIn(500);
                                                                 });
-                                                }, 5000);
+
+                                                                display.$caption.stop(true, true).fadeOut(500, function(){
+                                                                                $(this).text(nextItem.caption).fadeIn(500);
+                                                                });
+                                                });
+                                }, galleryRotationDelay);
+                }
+
+                function initSideGallery(selector, startIndex) {
+                                var $container = $(selector);
+                                if (!$container.length || !galleryItems.length) {
+                                                return;
                                 }
 
+                                var normalizedIndex = normalizeGalleryIndex(startIndex);
+                                var item = galleryItems[normalizedIndex];
+                                var display = {
+                                                currentIndex: normalizedIndex,
+                                                $image: $('<img/>', {
+                                                                'class': 'side-gallery__image',
+                                                                alt: 'Galerie foto',
+                                                                src: item.src
+                                                }).hide(),
+                                                $caption: $('<div/>', {
+                                                                'class': 'side-gallery__caption'
+                                                }).text(item.caption).hide()
+                                };
+
+                                $container.append(display.$image, display.$caption);
+                                galleryDisplays.push(display);
+
                                 galleryActivators.push(function(){
-                                                if (!$image.is(':visible')) {
-                                                                $image.fadeIn(1000);
+                                                if (!display.$image.is(':visible')) {
+                                                                display.$image.stop(true, true).fadeIn(800);
                                                 }
-                                                startRotation();
+
+                                                if (!display.$caption.is(':visible')) {
+                                                                display.$caption.stop(true, true).fadeIn(800);
+                                                }
+
+                                                ensureGalleryRotation();
                                 });
                 }
 
-		initSideGallery('#left-gallery', galleryImages, 0);
-		initSideGallery('#right-gallery', galleryImages, Math.floor(galleryImages.length / 2));
+                initSideGallery('#left-gallery', 0);
+                initSideGallery('#right-gallery', 1);
 
 		$(window).resize(function(){
 			 vw = $(window).width()/2;
