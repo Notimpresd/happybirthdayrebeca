@@ -1302,7 +1302,7 @@ audio {
 }
 .message {
         position: fixed;
-        top: 20px;
+        bottom: 20px;
         left: 0;
         width: 100%;
         margin-top: 0;

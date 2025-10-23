@@ -2,6 +2,11 @@
 var currentMsgIndex = 1;
 var totalMessages = $(".message p").length;
 var galleryActivators = [];
+var galleryState = {
+  baseIndex: 0,
+  intervalId: null,
+  displays: []
+};
 var galleryImageCaptions = {
   '11.jpg': 'Octombrie 2024',
   '12.jpg': 'Noiembrie 2024',
@@ -40,69 +45,75 @@ $('document').ready(function(){
 		var vw;
 		var galleryImages = ['11.jpg','12.jpg','13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg'];
 
+                function setDisplaySource(display, baseIndex, images) {
+                                var imageIndex = (baseIndex + display.offset + images.length) % images.length;
+                                var nextImage = images[imageIndex];
+                                display.$image.attr('src', nextImage);
+                                display.$caption.text(galleryImageCaptions[nextImage] || '');
+                }
+
+                function transitionDisplay(display, baseIndex, images) {
+                                var imageIndex = (baseIndex + display.offset + images.length) % images.length;
+                                var nextImage = images[imageIndex];
+                                var nextCaption = galleryImageCaptions[nextImage] || '';
+
+                                $.when(
+                                                display.$image.fadeOut(1000),
+                                                display.$caption.fadeOut(1000)
+                                ).done(function(){
+                                                display.$image.attr('src', nextImage).fadeIn(1000);
+                                                display.$caption.text(nextCaption).fadeIn(1000);
+                                });
+                }
+
+                function startGalleryRotation(images) {
+                                if (galleryState.intervalId !== null || !images.length) {
+                                                return;
+                                }
+
+                                galleryState.intervalId = setInterval(function(){
+                                                galleryState.baseIndex = (galleryState.baseIndex + 1) % images.length;
+                                                galleryState.displays.forEach(function(display){
+                                                                transitionDisplay(display, galleryState.baseIndex, images);
+                                                });
+                                }, galleryRotationDelay);
+                }
+
                 function initSideGallery(selector, images, startIndex) {
                                 var $container = $(selector);
                                 if (!$container.length || !images.length) {
                                                 return;
                                 }
 
-                                var currentIndex = startIndex % images.length;
-                                var $image = $('<img/>', {
-                                                'class': 'side-gallery__image',
-                                                src: images[currentIndex],
-                                                alt: 'Galerie foto'
-                                }).hide();
-                                var $caption = $('<div/>', {
-                                                'class': 'side-gallery__caption',
-                                                text: galleryImageCaptions[images[currentIndex]] || ''
-                                }).hide();
+                                var display = {
+                                                offset: startIndex % images.length,
+                                                $image: $('<img/>', {
+                                                                'class': 'side-gallery__image',
+                                                                alt: 'Galerie foto'
+                                                }).hide(),
+                                                $caption: $('<div/>', {
+                                                                'class': 'side-gallery__caption'
+                                                }).hide()
+                                };
 
-                                $container.append($image, $caption);
-
-                                var intervalId = null;
-
-                                function updateCaption() {
-                                                var currentImage = images[currentIndex];
-                                                $caption.text(galleryImageCaptions[currentImage] || '');
-                                }
-
-                                updateCaption();
-
-                                function startRotation() {
-                                                if (intervalId !== null) {
-                                                                return;
-                                                }
-
-                                                intervalId = setInterval(function(){
-                                                                var nextIndex = (currentIndex + 1) % images.length;
-                                                                $.when(
-                                                                                $image.fadeOut(1000),
-                                                                                $caption.fadeOut(1000)
-                                                                ).done(function(){
-                                                                                currentIndex = nextIndex;
-                                                                                var nextImage = images[currentIndex];
-                                                                                $image.attr('src', nextImage);
-                                                                                updateCaption();
-                                                                                $image.fadeIn(1000);
-                                                                                $caption.fadeIn(1000);
-                                                                });
-                                                }, galleryRotationDelay);
-                                }
+                                setDisplaySource(display, galleryState.baseIndex, images);
+                                $container.append(display.$image, display.$caption);
+                                galleryState.displays.push(display);
 
                                 galleryActivators.push(function(){
-                                                updateCaption();
-                                                if (!$image.is(':visible')) {
-                                                                $image.fadeIn(1000);
+                                                setDisplaySource(display, galleryState.baseIndex, images);
+                                                if (!display.$image.is(':visible')) {
+                                                                display.$image.fadeIn(1000);
                                                 }
-                                                if (!$caption.is(':visible')) {
-                                                                $caption.fadeIn(1000);
+                                                if (!display.$caption.is(':visible')) {
+                                                                display.$caption.fadeIn(1000);
                                                 }
-                                                startRotation();
+                                                startGalleryRotation(images);
                                 });
                 }
 
-		initSideGallery('#left-gallery', galleryImages, 0);
-		initSideGallery('#right-gallery', galleryImages, Math.floor(galleryImages.length / 2));
+                initSideGallery('#left-gallery', galleryImages, 0);
+                initSideGallery('#right-gallery', galleryImages, 1);
 
 		$(window).resize(function(){
 			 vw = $(window).width()/2;
