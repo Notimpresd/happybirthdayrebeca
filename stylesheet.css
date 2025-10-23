@@ -9,7 +9,29 @@ body {
 	overflow-x:hidden;
 }
 .container {
-	display: none;
+        display: none;
+}
+.banner-row {
+        margin-top: 20px;
+        margin-bottom: 20px;
+}
+.side-gallery {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 220px;
+        padding: 15px 0;
+}
+.side-gallery__image {
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+@media (max-width: 767px) {
+        .side-gallery {
+                min-height: auto;
+                padding: 10px 0;
+        }
 }
 .peach {
 	background-color: #FFDAB9;
