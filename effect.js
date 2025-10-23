@@ -1,3 +1,31 @@
+// Variabilă globală pentru indexul curent al mesajelor
+var currentMsgIndex = 1;
+var totalMessages = $(".message p").length;
+
+// Funcția existentă de loop
+function msgLoop(i) {
+  $("p:nth-child(" + i + ")").fadeOut('slow').delay(800).promise().done(function () {
+    i = i + 1;
+    $("p:nth-child(" + i + ")").fadeIn('slow').delay(1000);
+    currentMsgIndex = i;
+    if (i == totalMessages) {
+      $("p:nth-child(" + (totalMessages - 1) + ")").fadeOut('slow').promise().done(function () {
+        $('.cake').fadeIn('fast');
+      });
+    } else {
+      msgLoop(i);
+    }
+  });
+}
+
+// Buton skip
+$("#skip_message").click(function () {
+  if (currentMsgIndex < totalMessages) {
+    $("p:nth-child(" + currentMsgIndex + ")").fadeOut('fast');
+    currentMsgIndex++;
+    $("p:nth-child(" + currentMsgIndex + ")").fadeIn('fast');
+  }
+});
 $(window).load(function(){
 	$('.loading').fadeOut('fast');
 	$('.container').fadeIn('fast');
