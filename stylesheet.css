@@ -17,15 +17,26 @@ body {
 }
 .side-gallery {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         min-height: 220px;
         padding: 15px 0;
+        text-align: center;
 }
 .side-gallery__image {
         max-width: 100%;
         border-radius: 12px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+.side-gallery__caption {
+        margin-top: 12px;
+        font-family: 'Signika', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+        letter-spacing: 0.5px;
 }
 @media (max-width: 767px) {
         .side-gallery {
@@ -1290,17 +1301,25 @@ audio {
 	margin-top: 50px;
 }
 .message {
-	margin-top: 200px;
-	display: none;
+        position: fixed;
+        top: 20px;
+        left: 0;
+        width: 100%;
+        margin-top: 0;
+        padding: 0 20px;
+        display: none;
+        z-index: 1050;
+        pointer-events: none;
 }
 .message p {
-	font-family: 'Signika', sans-serif;
-	font-size: 30px;
-	text-transform: uppercase;
-	color: #C4515C;
-	text-shadow: 2px 2px 2px #FFF;
-	display: none;
-	font-weight: bold;
+        font-family: 'Signika', sans-serif;
+        font-size: 30px;
+        text-transform: uppercase;
+        color: #C4515C;
+        text-shadow: 2px 2px 2px #FFF;
+        display: none;
+        font-weight: bold;
+        text-align: center;
 }
 
 .btn-primary {

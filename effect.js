@@ -2,15 +2,28 @@
 var currentMsgIndex = 1;
 var totalMessages = $(".message p").length;
 var galleryActivators = [];
+var galleryImageCaptions = {
+  '11.jpg': 'Octombrie 2024',
+  '12.jpg': 'Noiembrie 2024',
+  '13.jpg': 'Decembrie 2024',
+  '14.jpg': 'Februarie 2025',
+  '15.jpg': 'Martie 2025',
+  '16.jpg': 'Aprilie 2025',
+  '17.jpg': 'Mai 2025',
+  '18.jpg': 'Iunie 2025',
+  '19.jpg': 'August 2025',
+  '20.jpg': 'Septembrie 2025'
+};
+var galleryRotationDelay = 10000;
 
 // Funcția existentă de loop
 function msgLoop(i) {
-  $("p:nth-child(" + i + ")").fadeOut('slow').delay(800).promise().done(function () {
+  $(".message p:nth-child(" + i + ")").fadeOut('slow').delay(800).promise().done(function () {
     i = i + 1;
-    $("p:nth-child(" + i + ")").fadeIn('slow').delay(1000);
+    $(".message p:nth-child(" + i + ")").fadeIn('slow').delay(1000);
     currentMsgIndex = i;
     if (i == totalMessages) {
-      $("p:nth-child(" + (totalMessages - 1) + ")").fadeOut('slow').promise().done(function () {
+      $(".message p:nth-child(" + (totalMessages - 1) + ")").fadeOut('slow').promise().done(function () {
         $('.cake').fadeIn('fast');
       });
     } else {
@@ -39,10 +52,21 @@ $('document').ready(function(){
                                                 src: images[currentIndex],
                                                 alt: 'Galerie foto'
                                 }).hide();
+                                var $caption = $('<div/>', {
+                                                'class': 'side-gallery__caption',
+                                                text: galleryImageCaptions[images[currentIndex]] || ''
+                                }).hide();
 
-                                $container.append($image);
+                                $container.append($image, $caption);
 
                                 var intervalId = null;
+
+                                function updateCaption() {
+                                                var currentImage = images[currentIndex];
+                                                $caption.text(galleryImageCaptions[currentImage] || '');
+                                }
+
+                                updateCaption();
 
                                 function startRotation() {
                                                 if (intervalId !== null) {
@@ -51,16 +75,27 @@ $('document').ready(function(){
 
                                                 intervalId = setInterval(function(){
                                                                 var nextIndex = (currentIndex + 1) % images.length;
-                                                                $image.fadeOut(1000, function(){
+                                                                $.when(
+                                                                                $image.fadeOut(1000),
+                                                                                $caption.fadeOut(1000)
+                                                                ).done(function(){
                                                                                 currentIndex = nextIndex;
-                                                                                $image.attr('src', images[currentIndex]).fadeIn(1000);
+                                                                                var nextImage = images[currentIndex];
+                                                                                $image.attr('src', nextImage);
+                                                                                updateCaption();
+                                                                                $image.fadeIn(1000);
+                                                                                $caption.fadeIn(1000);
                                                                 });
-                                                }, 5000);
+                                                }, galleryRotationDelay);
                                 }
 
                                 galleryActivators.push(function(){
+                                                updateCaption();
                                                 if (!$image.is(':visible')) {
                                                                 $image.fadeIn(1000);
+                                                }
+                                                if (!$caption.is(':visible')) {
+                                                                $caption.fadeIn(1000);
                                                 }
                                                 startRotation();
                                 });
