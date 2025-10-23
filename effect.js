@@ -1,6 +1,7 @@
 // Variabilă globală pentru indexul curent al mesajelor
 var currentMsgIndex = 1;
 var totalMessages = $(".message p").length;
+var galleryActivators = [];
 
 // Funcția existentă de loop
 function msgLoop(i) {
@@ -18,45 +19,52 @@ function msgLoop(i) {
   });
 }
 
-// Buton skip
-$("#skip_message").click(function () {
-  if (currentMsgIndex < totalMessages) {
-    $("p:nth-child(" + currentMsgIndex + ")").fadeOut('fast');
-    currentMsgIndex++;
-    $("p:nth-child(" + currentMsgIndex + ")").fadeIn('fast');
-  }
-});
 $(window).load(function(){
-	$('.loading').fadeOut('fast');
-	$('.container').fadeIn('fast');
+        $('.loading').fadeOut('fast');
+        $('.container').fadeIn('fast');
 });
 $('document').ready(function(){
 		var vw;
 		var galleryImages = ['11.jpg','12.jpg','13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg'];
 
-		function initSideGallery(selector, images, startIndex) {
-				var $container = $(selector);
-				if (!$container.length || !images.length) {
-						return;
-				}
+                function initSideGallery(selector, images, startIndex) {
+                                var $container = $(selector);
+                                if (!$container.length || !images.length) {
+                                                return;
+                                }
 
-				var currentIndex = startIndex % images.length;
-				var $image = $('<img/>', {
-						'class': 'side-gallery__image',
-						src: images[currentIndex],
-						alt: 'Galerie foto'
-				});
+                                var currentIndex = startIndex % images.length;
+                                var $image = $('<img/>', {
+                                                'class': 'side-gallery__image',
+                                                src: images[currentIndex],
+                                                alt: 'Galerie foto'
+                                }).hide();
 
-				$container.append($image);
+                                $container.append($image);
 
-				setInterval(function(){
-						var nextIndex = (currentIndex + 1) % images.length;
-						$image.fadeOut(1000, function(){
-								currentIndex = nextIndex;
-								$image.attr('src', images[currentIndex]).fadeIn(1000);
-						});
-				}, 5000);
-		}
+                                var intervalId = null;
+
+                                function startRotation() {
+                                                if (intervalId !== null) {
+                                                                return;
+                                                }
+
+                                                intervalId = setInterval(function(){
+                                                                var nextIndex = (currentIndex + 1) % images.length;
+                                                                $image.fadeOut(1000, function(){
+                                                                                currentIndex = nextIndex;
+                                                                                $image.attr('src', images[currentIndex]).fadeIn(1000);
+                                                                });
+                                                }, 5000);
+                                }
+
+                                galleryActivators.push(function(){
+                                                if (!$image.is(':visible')) {
+                                                                $image.fadeIn(1000);
+                                                }
+                                                startRotation();
+                                });
+                }
 
 		initSideGallery('#left-gallery', galleryImages, 0);
 		initSideGallery('#right-gallery', galleryImages, Math.floor(galleryImages.length / 2));
@@ -221,35 +229,28 @@ $('document').ready(function(){
 		});
 	});
 	
-	$('#story').click(function(){
-		$(this).fadeOut('slow');
-		$('.cake').fadeOut('fast').promise().done(function(){
-			$('.message').fadeIn('slow');
-		});
-		
-		var i;
+        $('#story').click(function(){
+                $(this).fadeOut('slow');
 
-		function msgLoop (i) {
-			$("p:nth-child("+i+")").fadeOut('slow').delay(800).promise().done(function(){
-			i=i+1;
-			$("p:nth-child("+i+")").fadeIn('slow').delay(1000);
-			if(i==50){
-				$("p:nth-child(49)").fadeOut('slow').promise().done(function () {
-					$('.cake').fadeIn('fast');
-				});
-				
-			}
-			else{
-				msgLoop(i);
-			}			
+                galleryActivators.forEach(function(activate){
+                        activate();
+                });
 
-		});
-			// body...
-		}
-		
-		msgLoop(0);
-		
-	});
+                $('.cake').fadeOut('fast').promise().done(function(){
+                        var $message = $('.message');
+                        var $paragraphs = $message.find('p');
+
+                        $paragraphs.hide();
+
+                        $message.fadeIn('slow', function(){
+                                $paragraphs.first().fadeIn('slow', function(){
+                                        currentMsgIndex = 1;
+                                        msgLoop(currentMsgIndex);
+                                });
+                        });
+                });
+
+        });
 });
 
 
