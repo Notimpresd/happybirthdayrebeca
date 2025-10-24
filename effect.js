@@ -4,7 +4,8 @@ var totalMessages = $(".message p").length;
 var galleryActivators = [];
 var galleryState = {
   baseIndex: 0,
-  intervalId: null,
+  rotationTimer: null,
+  isActive: false,
   displays: []
 };
 var galleryImageCaptions = {
@@ -48,35 +49,66 @@ $('document').ready(function(){
                 function setDisplaySource(display, baseIndex, images) {
                                 var imageIndex = (baseIndex + display.offset + images.length) % images.length;
                                 var nextImage = images[imageIndex];
-                                display.$image.attr('src', nextImage);
-                                display.$caption.text(galleryImageCaptions[nextImage] || '');
+                                display.$image.stop(true, true).attr('src', nextImage);
+                                display.$caption.stop(true, true).text(galleryImageCaptions[nextImage] || '');
                 }
 
                 function transitionDisplay(display, baseIndex, images) {
                                 var imageIndex = (baseIndex + display.offset + images.length) % images.length;
                                 var nextImage = images[imageIndex];
                                 var nextCaption = galleryImageCaptions[nextImage] || '';
+                                var deferred = $.Deferred();
 
-                                $.when(
-                                                display.$image.fadeOut(1000),
-                                                display.$caption.fadeOut(1000)
-                                ).done(function(){
+                                var fadeOutImage = display.$image.stop(true, true).fadeOut(1000).promise();
+                                var fadeOutCaption = display.$caption.stop(true, true).fadeOut(1000).promise();
+
+                                $.when(fadeOutImage, fadeOutCaption).done(function(){
                                                 display.$image.attr('src', nextImage).fadeIn(1000);
                                                 display.$caption.text(nextCaption).fadeIn(1000);
+
+                                                $.when(
+                                                                display.$image.promise(),
+                                                                display.$caption.promise()
+                                                ).always(function(){
+                                                                deferred.resolve();
+                                                });
                                 });
+
+                                return deferred.promise();
                 }
 
-                function startGalleryRotation(images) {
-                                if (galleryState.intervalId !== null || !images.length) {
+                function queueNextRotation(images) {
+                                if (!galleryState.isActive || !images.length) {
                                                 return;
                                 }
 
-                                galleryState.intervalId = setInterval(function(){
+                                if (galleryState.rotationTimer !== null) {
+                                                clearTimeout(galleryState.rotationTimer);
+                                }
+
+                                galleryState.rotationTimer = setTimeout(function(){
+                                                galleryState.rotationTimer = null;
                                                 galleryState.baseIndex = (galleryState.baseIndex + 1) % images.length;
-                                                galleryState.displays.forEach(function(display){
-                                                                transitionDisplay(display, galleryState.baseIndex, images);
+
+                                                var transitions = galleryState.displays.map(function(display){
+                                                                return transitionDisplay(display, galleryState.baseIndex, images);
+                                                });
+
+                                                var rotationPromise = transitions.length ? $.when.apply($, transitions) : $.Deferred().resolve().promise();
+
+                                                rotationPromise.always(function(){
+                                                                queueNextRotation(images);
                                                 });
                                 }, galleryRotationDelay);
+                }
+
+                function startGalleryRotation(images) {
+                                if (galleryState.isActive || !images.length) {
+                                                return;
+                                }
+
+                                galleryState.isActive = true;
+                                queueNextRotation(images);
                 }
 
                 function initSideGallery(selector, images, startIndex) {
