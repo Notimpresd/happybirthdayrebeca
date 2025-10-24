@@ -100,23 +100,6 @@ $('document').ready(function(){
                                 $container.append(display.$image, display.$caption);
                                 galleryState.displays.push(display);
 
-                                var normalizedIndex = normalizeGalleryIndex(startIndex);
-                                var item = galleryItems[normalizedIndex];
-                                var display = {
-                                                currentIndex: normalizedIndex,
-                                                $image: $('<img/>', {
-                                                                'class': 'side-gallery__image',
-                                                                alt: 'Galerie foto',
-                                                                src: item.src
-                                                }).hide(),
-                                                $caption: $('<div/>', {
-                                                                'class': 'side-gallery__caption'
-                                                }).text(item.caption).hide()
-                                };
-
-                                $container.append(display.$image, display.$caption);
-                                galleryDisplays.push(display);
-
                                 galleryActivators.push(function(){
                                                 setDisplaySource(display, galleryState.baseIndex, images);
                                                 if (!display.$image.is(':visible')) {
