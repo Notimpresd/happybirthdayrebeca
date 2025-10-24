@@ -53,24 +53,50 @@ $('document').ready(function(){
                                 display.$caption.stop(true, true).text(galleryImageCaptions[nextImage] || '');
                 }
 
+                function preloadImage(src) {
+                                var deferred = $.Deferred();
+                                var img = new Image();
+
+                                img.onload = function(){
+                                                deferred.resolve();
+                                };
+
+                                img.onerror = function(){
+                                                // Chiar dacă imaginea nu se încarcă, nu blocăm rotația.
+                                                deferred.resolve();
+                                };
+
+                                img.src = src;
+
+                                return deferred.promise();
+                }
+
                 function transitionDisplay(display, baseIndex, images) {
                                 var imageIndex = (baseIndex + display.offset + images.length) % images.length;
                                 var nextImage = images[imageIndex];
                                 var nextCaption = galleryImageCaptions[nextImage] || '';
                                 var deferred = $.Deferred();
 
-                                var fadeOutImage = display.$image.stop(true, true).fadeOut(1000).promise();
-                                var fadeOutCaption = display.$caption.stop(true, true).fadeOut(1000).promise();
+                                var fadeOutImage = display.$image.stop(true, false).fadeOut(1000).promise();
+                                var fadeOutCaption = display.$caption.stop(true, false).fadeOut(1000).promise();
 
                                 $.when(fadeOutImage, fadeOutCaption).done(function(){
-                                                display.$image.attr('src', nextImage).fadeIn(1000);
-                                                display.$caption.text(nextCaption).fadeIn(1000);
+                                                preloadImage(nextImage).always(function(){
+                                                                display.$image
+                                                                                .attr('src', nextImage)
+                                                                                .stop(true, false)
+                                                                                .fadeIn(1000);
+                                                                display.$caption
+                                                                                .text(nextCaption)
+                                                                                .stop(true, false)
+                                                                                .fadeIn(1000);
 
-                                                $.when(
-                                                                display.$image.promise(),
-                                                                display.$caption.promise()
-                                                ).always(function(){
-                                                                deferred.resolve();
+                                                                $.when(
+                                                                                display.$image.promise(),
+                                                                                display.$caption.promise()
+                                                                ).always(function(){
+                                                                                deferred.resolve();
+                                                                });
                                                 });
                                 });
 
